@@ -1,0 +1,226 @@
+#dependencies
+sudo apt update
+sudo apt update && sudo apt upgrade -y
+sudo apt update
+sudo apt install apache2 -y
+sudo apt install php libapache2-mod-php php-mysql php-curl php-xml php-gd php-mbstring php-zip php-intl -y
+sudo apt install mariadb-server mariadb-client -y
+sudo mysql_secure_installation
+sudo apt install php-sqlite3
+sudo apt install ufw
+sudo apt install dnsutils -y
+sudo apt upgrade certbot python3-certbot-apache -y
+sudo apt install python3-certbot-dns-cloudflare
+sudo apt install git
+sudo apt install libpq-dev -y
+sudo apt install software-properties-common -y
+sudo apt install php libapache2-mod-php php-mysql php-xml php-cli php-curl php-zip
+sudo apt install php php-mysql php-gd php-xml php-xmlrpc php-mbstring php-curl php-zip libapache2-mod-php -y
+sudo apt install curl -y
+sudo apt install unzip -y
+
+#configuring git
+
+git config --global user.name 'your name'
+git config --global user.email 'youremail@gmail.com'
+git config --global init.defaultBranch main
+
+mkdir -p ~/app_bare
+cd ~/app_bare
+git init --bare
+cd ~
+
+#Creating the application repository on the server
+
+mkdir -p ~/app_repo
+cd ~/app_repo
+git init
+git remote add origin ~/app_bare
+git add . && git commit -m 'Initial'
+cd ~
+
+#on local pc
+git init
+git add .
+git commit -m 'Initial'
+git remote add app_bare ssh@ip:~/app_bare
+git push app_bare main
+
+#serve/app_repo
+git pull origin main
+
+#wordpress
+cd /home/darioaraujo44/app_repo/wordpress_site
+sudo curl -O https://wordpress.org/latest.tar.gz
+sudo tar -xvzf latest.tar.gz
+sudo rm latest.tar.gz
+sudo mv wordpress/* .         */
+sudo rm -rf wordpress
+sudo chown -R www-data:www-data /home/darioaraujo44/app_repo/wordpress_site
+
+#no need to change.
+sudo nano wp-config-sample.php
+
+define( 'DB_NAME', 'db_name' );
+define( 'DB_USER', 'db_user' );
+define( 'DB_PASSWORD', 'password' );
+define( 'DB_HOST', 'localhost' );
+########################################################
+
+#database configuration
+#change the fields are standard users must ensure to save the information, after installing wordpress you must place the same.
+sudo mysql -u root -p
+CREATE USER 'db_user'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON db_name.* TO 'db_user'@'localhost';
+FLUSH PRIVILEGES;
+
+ALTER USER 'db_user'@'localhost' IDENTIFIED BY 'password';
+
+SHOW GRANTS FOR 'db_user'@'localhost';
+
+exit
+
+mysql -u db_user -p 4misedb
+
+sudo mysql -u root -p
+
+CREATE DATABASE db_name;
+SHOW DATABASES;
+GRANT ALL PRIVILEGES ON db_name.* TO 'db_user'@'localhost';
+
+FLUSH PRIVILEGES;
+
+mysql -u db_user -p db_name
+
+exit
+
+sudo systemctl restart apache2
+
+#sqlite
+sudo nano /etc/php/*/apache2/php.ini                    */
+#copy to file
+
+extension=pdo_sqlite
+extension=sqlite3
+#########################
+
+sudo systemctl enable apache2
+
+sudo nano /etc/php/*/apache2/php.ini            */
+#copy to file
+upload_max_filesize = 2048M
+post_max_size = 2048M
+memory_limit = 2048M
+max_execution_time = 300
+#######################
+
+sudo systemctl restart apache2
+
+sudo a2enmod rewrite
+sudo a2enmod headers
+sudo a2enmod ssl
+
+sudo nano /etc/apache2/sites-available/wordpress.conf
+
+<VirtualHost *:80>
+    ServerAdmin useradmin
+    DocumentRoot / file location /app_repo/wordpress_site
+    ServerName ip server
+    
+<Directory / file location /app_repo/wordpress_site>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
+sudo a2ensite wordpress.conf
+sudo a2enmod rewrite
+sudo a2dissite 000-default.conf
+sudo a2enmod ssl
+sudo a2ensite wordpress.conf
+
+sudo systemctl start apache2
+
+sudo nano /etc/mysql/my.cnf
+
+[mysqld]
+innodb_buffer_pool_size = 128M # Reduces buffer size (adjust as needed)
+max_connections = 50 # Limits number of concurrent connections
+query_cache_size = 16M # Reduces query cache
+tmp_table_size = 16M # Limits temporary tables
+max_heap_table_size = 16M # Limits in-memory tables
+
+sudo systemctl restart mariadb
+
+#if your server has 1G of RAM
+
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+sudo systemctl status mariadb
+sudo systemctl status mysql
+sudo systemctl start mariadb
+sudo systemctl start mysql
+
+#### FOR DOMAIN #############
+
+sudo apt install apache2 certbot python3-certbot-apache -y
+sudo openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+sudo systemctl stop apache2
+sudo certbot certonly --standalone -d YOUR DOMAIN
+
+#se erro 
+certbot certonly --webroot
+sudo certbot certonly --webroot -d YOUR DOMAIN --webroot-path /var/www/html
+
+sudo nano /etc/apache2/sites-available/wordpress.conf
+
+<VirtualHost *:80>
+    ServerAdmin SERVE ADMIN
+    DocumentRoot / file location /wordpress_site
+    ServerName YOUR DOMAIN
+
+    # Redirect HTTP to HTTPS
+    Redirect permanent / https://YOUR DOMAIN/
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerAdmin SERVE ADMIN
+    DocumentRoot / file location /app_repo/wordpress_site
+    ServerName YOUR DOMAIN
+
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/YOUR DOMAIN/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/YOUR DOMAIN/privkey.pem
+
+    <Directory / file location /app_repo/wordpress_site>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
+<Directory "/ file location /app_repo.well-known/acme-challenge/">
+        Options FollowSymLinks
+        AllowOverride None
+        ForceType text/plain
+        Require all granted
+</Directory>
+
+sudo systemctl start apache2
+
+
+
+
+
