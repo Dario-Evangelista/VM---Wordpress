@@ -68,6 +68,8 @@ define( 'DB_HOST', 'localhost' );
 ########################################################
 
 #database configuration
+os usuarios e senha devem ser o mesmo que vai na instalação wordpress.
+
 #change the fields are standard users must ensure to save the information, after installing wordpress you must place the same.
 sudo mysql -u root -p
 CREATE USER 'db_user'@'localhost' IDENTIFIED BY 'password';
