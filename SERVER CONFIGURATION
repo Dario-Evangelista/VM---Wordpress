@@ -54,7 +54,7 @@ cd /home/darioaraujo44/app_repo/wordpress_site
 sudo curl -O https://wordpress.org/latest.tar.gz
 sudo tar -xvzf latest.tar.gz
 sudo rm latest.tar.gz
-sudo mv wordpress/* .         */
+sudo mv wordpress/* .         
 sudo rm -rf wordpress
 sudo chown -R www-data:www-data /home/darioaraujo44/app_repo/wordpress_site
 
@@ -80,8 +80,6 @@ SHOW GRANTS FOR 'db_user'@'localhost';
 
 exit
 
-mysql -u db_user -p 4misedb
-
 sudo mysql -u root -p
 
 CREATE DATABASE db_name;
@@ -97,16 +95,13 @@ exit
 sudo systemctl restart apache2
 
 #sqlite
-sudo nano /etc/php/*/apache2/php.ini                    */
+sudo nano /etc/php/*/apache2/php.ini                   
 #copy to file
 
 extension=pdo_sqlite
 extension=sqlite3
-#########################
 
-sudo systemctl enable apache2
-
-sudo nano /etc/php/*/apache2/php.ini            */
+sudo nano /etc/php/*/apache2/php.ini            
 #copy to file
 upload_max_filesize = 2048M
 post_max_size = 2048M
@@ -177,11 +172,14 @@ sudo openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
 sudo systemctl stop apache2
 sudo certbot certonly --standalone -d YOUR DOMAIN
 
+################################################################################
 #se erro 
 certbot certonly --webroot
 sudo certbot certonly --webroot -d YOUR DOMAIN --webroot-path /var/www/html
-
+################################################################################
 sudo nano /etc/apache2/sites-available/wordpress.conf
+
+COMMAND PWD para saber a file location colocar endereço da pasta onde está os arquivo wp-config.php 
 
 <VirtualHost *:80>
     ServerAdmin SERVE ADMIN
