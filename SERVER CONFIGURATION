@@ -1,3 +1,24 @@
+#por padrão a pasta de envio para git será 'app_bare';
+#em sistema linux usa 'pwd' para pegar o endereço do diretorio atual;
+usa vs code para ajudar na ediçao usando    f3 para ajudar na edição 
+
+endereço da pasta pricipal '/diretorio_do_serividor/';
+seu nome de usuario 'you_user_git';
+seu email de usuario 'you_email_git';
+default Branch 'init.defaultBranch main';
+
+pasta do wordpress 'wordpress_site';
+
+nome da pasta do repositório 'app_repo';
+db_name '_db_name';
+db_user '_db_user';
+db_password '_db_password';
+
+ServerAdmin 'user_admin';
+ServerName 'ip server'; 
+seu dominio 'YOUR DOMAIN';
+
+
 #dependencies
 sudo apt update
 sudo apt update && sudo apt upgrade -y
@@ -21,8 +42,8 @@ sudo apt install unzip -y
 
 #configuring git
 
-git config --global user.name 'your name'
-git config --global user.email 'youremail@gmail.com'
+git config --global user.name 'you_user_git'
+git config --global user.email 'you_email_git'
 git config --global init.defaultBranch main
 
 mkdir -p ~/app_bare
@@ -39,7 +60,7 @@ git remote add origin ~/app_bare
 git add . && git commit -m 'Initial'
 cd ~
 
-#on local pc
+#no local pc
 git init
 git add .
 git commit -m 'Initial'
@@ -50,20 +71,21 @@ git push app_bare main
 git pull origin main
 
 #wordpress
-cd /home/darioaraujo44/app_repo/wordpress_site
+cd app_repo
+mkdir -p ~/wordpress_site
 sudo curl -O https://wordpress.org/latest.tar.gz
 sudo tar -xvzf latest.tar.gz
 sudo rm latest.tar.gz
 sudo mv wordpress/* .         
 sudo rm -rf wordpress
-sudo chown -R www-data:www-data /home/darioaraujo44/app_repo/wordpress_site
+sudo chown -R www-data:www-data /diretorio_do_serividor/app_repo/wordpress_site
 
 #no need to change.
 sudo nano wp-config-sample.php
 
-define( 'DB_NAME', 'db_name' );
-define( 'DB_USER', 'db_user' );
-define( 'DB_PASSWORD', 'password' );
+define( 'DB_NAME', '_db_name' );
+define( 'DB_USER', '_db_user' );
+define( 'DB_PASSWORD', '_db_password' );
 define( 'DB_HOST', 'localhost' );
 ########################################################
 
@@ -72,25 +94,24 @@ os usuarios e senha devem ser o mesmo que vai na instalação wordpress.
 
 #change the fields are standard users must ensure to save the information, after installing wordpress you must place the same.
 sudo mysql -u root -p
-CREATE USER 'db_user'@'localhost' IDENTIFIED BY 'password';
-GRANT ALL PRIVILEGES ON db_name.* TO 'db_user'@'localhost';
+CREATE USER '_db_user'@'localhost' IDENTIFIED BY '_db_password';
+GRANT ALL PRIVILEGES ON _db_name.* TO '_db_user'@'localhost';
 FLUSH PRIVILEGES;
 
-ALTER USER 'db_user'@'localhost' IDENTIFIED BY 'password';
+ALTER USER '_db_user'@'localhost' IDENTIFIED BY '_db_password';
 
-SHOW GRANTS FOR 'db_user'@'localhost';
+SHOW GRANTS FOR '_db_user'@'localhost';
+
+CREATE DATABASE _db_name;
+SHOW DATABASES;
+GRANT ALL PRIVILEGES ON _db_name.* TO '_db_user'@'localhost';
+
+FLUSH PRIVILEGES;
 
 exit
-
-sudo mysql -u root -p
-
-CREATE DATABASE db_name;
-SHOW DATABASES;
-GRANT ALL PRIVILEGES ON db_name.* TO 'db_user'@'localhost';
-
-FLUSH PRIVILEGES;
-
-mysql -u db_user -p db_name
+######
+se quiser verificar se está tudo okay;
+mysql -u _db_user -p _db_name
 
 exit
 
@@ -120,11 +141,11 @@ sudo a2enmod ssl
 sudo nano /etc/apache2/sites-available/wordpress.conf
 
 <VirtualHost *:80>
-    ServerAdmin useradmin
-    DocumentRoot / file location /app_repo/wordpress_site
+    ServerAdmin user_admin
+    DocumentRoot /diretorio_do_serividor/app_repo/wordpress_site
     ServerName ip server
     
-<Directory / file location /app_repo/wordpress_site>
+    <Directory /diretorio_do_serividor/app_repo/wordpress_site>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
@@ -133,6 +154,7 @@ sudo nano /etc/apache2/sites-available/wordpress.conf
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
+
 
 sudo a2ensite wordpress.conf
 sudo a2enmod rewrite
@@ -153,7 +175,7 @@ max_heap_table_size = 16M # Limits in-memory tables
 
 sudo systemctl restart mariadb
 
-#if your server has 1G of RAM
+#your server has 1G of RAM
 
 sudo fallocate -l 2G /swapfile
 sudo chmod 600 /swapfile
@@ -184,43 +206,37 @@ sudo nano /etc/apache2/sites-available/wordpress.conf
 COMMAND PWD para saber a file location colocar endereço da pasta onde está os arquivo wp-config.php 
 
 <VirtualHost *:80>
-    ServerAdmin SERVE ADMIN
-    DocumentRoot / file location /wordpress_site
+    ServerAdmin user_admin
+    DocumentRoot /diretorio_do_serividor/app_repo/wordpress_site
     ServerName YOUR DOMAIN
-
-    # Redirect HTTP to HTTPS
-    Redirect permanent / https://YOUR DOMAIN/
+    # Redireciona qualquer HTTP para o mesmo host em HTTPS
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </VirtualHost>
 
 <VirtualHost *:443>
-    ServerAdmin SERVE ADMIN
-    DocumentRoot / file location /app_repo/wordpress_site
+    ServerAdmin user_admin
     ServerName YOUR DOMAIN
+    DocumentRoot /diretorio_do_serividor/app_repo/wordpress_site
 
     SSLEngine on
     SSLCertificateFile /etc/letsencrypt/live/YOUR DOMAIN/fullchain.pem
     SSLCertificateKeyFile /etc/letsencrypt/live/YOUR DOMAIN/privkey.pem
 
-    <Directory / file location /app_repo/wordpress_site>
+    <Directory /diretorio_do_serividor/app_repo/wordpress_site>
         Options Indexes FollowSymLinks
         AllowOverride All
         Require all granted
     </Directory>
-
-    ErrorLog ${APACHE_LOG_DIR}/error.log
-    CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 
-<Directory "/ file location /app_repo.well-known/acme-challenge/">
-        Options FollowSymLinks
-        AllowOverride None
-        ForceType text/plain
-        Require all granted
+# Permitir acesso ao desafio ACME do Let's Encrypt
+<Directory "/diretorio_do_serividor/app_repo/.well-known/acme-challenge/">
+    Options FollowSymLinks
+    AllowOverride None
+    ForceType text/plain
+    Require all granted
 </Directory>
 
 sudo systemctl start apache2
-
-
-
-
-
