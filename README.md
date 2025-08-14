@@ -3,7 +3,6 @@ O passo a passo inclui a preparação do servidor, instalação de dependências
 
 O objetivo é permitir que qualquer usuário com acesso ao servidor possa replicar a configuração de forma segura, escalável e com boas práticas de administração.
 
-Passo a Passo Técnico e Funcional
 1. Preparação do Servidor
 
 Atualização do sistema e instalação de pacotes essenciais (apache2, php, mariadb, git, certbot).
